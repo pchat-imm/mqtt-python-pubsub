@@ -1,6 +1,10 @@
 ## to operate system
 - open vscode with Ubuntu WSL (select symbol >< at bottom left)
 - open terminal
+- mnt folder
+```
+cd /mnt/d/workarea/together_python
+```
 - install requirement
 ```
 pip install -r requirement.txt
