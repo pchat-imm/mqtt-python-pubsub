@@ -1,6 +1,10 @@
 ## current task
 1. after correlation, fshift=end recieve fshift_count =?, then it determine maximum max_corr_value among fshift
 - do in `waveform_fshift_ds.py`
+- change parameter name into
+    NID2, peak_corr_val, peak_corr_ind
+    max_NID2, max_corr_val, max_corr_ind
+    sel_NID2, sel_corr_val, sel_corr_ind, sel_fshift
 - store fshift, NID2, max_corr_ind, max_corr_val
 - insert in function 'count_complete(count_fshift)'
 
