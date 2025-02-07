@@ -1,9 +1,16 @@
+## current task
+1. after correlation, fshift=end recieve fshift_count =?, then it determine maximum max_corr_value among fshift
+- do in `waveform_fshift_ds.py`
+- store fshift, NID2, max_corr_ind, max_corr_val
+- insert in function 'count_complete(count_fshift)'
+
+
 ## to operate system
 - open vscode with Ubuntu WSL (select symbol >< at bottom left)
 - open terminal
 - mnt folder
 ```
-cd /mnt/d/workarea/together_python
+cd /mnt/d/workarea/together_python                                                                                                                                                                            
 ```
 - install requirement
 ```
