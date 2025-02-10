@@ -38,16 +38,17 @@ def on_message(client, userdata, msg):
         print("calculate")
         rxWaveformFreqCorrected = waveform_fshift(fshift, sampleRate, waveform)
         rxWaveformDS = waveformDS(sampleRate, rxWaveformFreqCorrected)
-        peak_index, peak_value = correlate(carrier, fshift, sampleRate, rxWaveformDS, refWaveforms)
-        NID2, max_corr_val, max_corr_ind = peak_one_fshift(peak_index, peak_value)
+        temp_corr_ind, temp_corr_val = correlate(carrier, fshift, sampleRate, rxWaveformDS, refWaveforms)
+        fshift_NID2, fshift_corr_ind, fshift_corr_val = peak_one_fshift(temp_corr_ind, temp_corr_val)
 
-        payload_corr = f"{NID2},{max_corr_val}"
+        # mqtt explorer show waveform_fshift_ds/fshift_0: 2 212843 0.5678
+        payload_corr = f"{fshift_NID2},{fshift_corr_ind},{fshift_corr_val}"
         client.publish("waveform_fshift_ds/fshift_"+os.environ['fshift'], payload = payload_corr)
 
     else:
-      # if receive something -> "waveform_fshifts_ds/fshift_"+os.environ['fshift'], payload = payload_corr
+      # add number of calculated correlate of fshift
       global count_fshift # call to edit global parameter
-      print("in this loop")
+      print("in count_fshift loop")
       count_fshift = count_fshift + 1
       count_complete(count_fshift)
 
@@ -55,7 +56,8 @@ def on_message(client, userdata, msg):
 def count_complete(count_fshift):
     if(count_fshift == 2):
       # count_fshift here is local parameter
-      ## start compare correlate
+      # once calculate enough fshift of corr(rxWaveformDS, refWaveforms) - determine max corr
+      # return sel_NID2, sel_corr_ind, sel_corr_val
       print("sum")
 
 
@@ -127,22 +129,24 @@ def load_PSS_seq(base_path_PSS):
 
 def correlate(carrier, fshifts, sampleRate, rxWaveformDS, refWaveforms):
   kPSS = np.arange((119-63), (119+64))    # np.arange(56, 183) # check on 3GPP standard 
-  peak_value = np.zeros(3)    # array
-  peak_index = np.zeros(3, 'int')
+  corr_ind = np.zeros(3)    # array
+  corr_val = np.zeros(3, 'int')
   t = np.arange(len(rxWaveformDS))/sampleRate
 
   for NID2 in np.arange(3, dtype='int'):
     temp = scipy.signal.correlate(rxWaveformDS, refWaveforms[f'NID2_{NID2}'],'valid')
-    peak_index[NID2] = np.argmax(np.abs(temp))
-    peak_value[NID2] = np.abs(temp[peak_index[NID2]])   
-    print(f"NID2 {NID2}:", peak_index[NID2], peak_value[NID2])    
-  return peak_index, peak_value
+    corr_ind[NID2] = np.argmax(np.abs(temp))
+    corr_val[NID2] = np.abs(temp[corr_ind[NID2]])   
+    print(f"NID2 {NID2}:", corr_ind[NID2], corr_val[NID2])    
+  return corr_ind, corr_val
 
-def peak_one_fshift(corr_indices, corr_values):
-   NID2_max = np.argmax(corr_values)
-   max_corr_val = corr_values[NID2_max]
-   max_corr_ind = corr_indices[NID2_max]
-   return NID2_max, max_corr_val, max_corr_ind
+def peak_one_fshift(corr_ind, corr_val):
+  # one rxWaveformDS of a fshift with 3 refWaveforms 
+  # input is 3 NID2 with 3 corr_ind and 3 corr_val 
+  fshift_NID2 = np.argmax(corr_val)
+  fshift_corr_val = fshift_corr_val[fshift_NID2]
+  fshift_corr_ind = fshift_corr_ind[fshift_NID2]
+  return fshift_NID2, fshift_corr_ind, fshift_corr_val
 
 if __name__ == "__main__":
   # init parameter
