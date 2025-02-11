@@ -1,10 +1,9 @@
 ## current task
-1. after correlation, fshift=end recieve fshift_count =?, then it determine maximum max_corr_value among fshift
-- copy correct code from `waveform_fshift_noThread` in `waveform_fshift_ds.py`
-    - function correlate, and one_peak_fshift
-- store fshift_NID2, fshift_corr_val, fshift_corr_ind
+1. pick up work on `waveform_fshift_noThread_dataClass`
+- what did i do? what we do next?
+???
+- copy correct code from to `waveform_fshift_ds.py`
 - insert in function 'count_complete(count_fshift)'
-- determine sel_NID2, sel_corr_ind, sel_corr_val
 
 
 ## to operate system

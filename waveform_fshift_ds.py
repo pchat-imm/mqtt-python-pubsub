@@ -8,7 +8,8 @@ from py3gpp import *
 # Set up client and callbacks
 client = mqtt.Client()
 
-count_fshift = 0    # global parameter to count number of fshift
+# init global parameter
+count_fshift = 0    # to count number of received fshift
 
 # Define callback functions
 def on_connect(client, userdata, flags, rc):
@@ -42,8 +43,8 @@ def on_message(client, userdata, msg):
         fshift_NID2, fshift_corr_ind, fshift_corr_val = peak_one_fshift(temp_corr_ind, temp_corr_val)
 
         # mqtt explorer show waveform_fshift_ds/fshift_0: 2 212843 0.5678
-        payload_corr = f"{fshift_NID2},{fshift_corr_ind},{fshift_corr_val}"
-        client.publish("waveform_fshift_ds/fshift_"+os.environ['fshift'], payload = payload_corr)
+        payload_fshift_corr = f"{fshift_NID2},{fshift_corr_ind},{fshift_corr_val}"
+        client.publish("waveform_fshift_ds/fshift_"+os.environ['fshift'], payload = payload_fshift_corr)
 
     else:
       # add number of calculated correlate of fshift
@@ -51,6 +52,9 @@ def on_message(client, userdata, msg):
       print("in count_fshift loop")
       count_fshift = count_fshift + 1
       count_complete(count_fshift)
+
+      if(msg.topic =="waveform_fshift_ds/fshift_#"):
+         
 
     
 def count_complete(count_fshift):
@@ -129,23 +133,25 @@ def load_PSS_seq(base_path_PSS):
 
 def correlate(carrier, fshifts, sampleRate, rxWaveformDS, refWaveforms):
   kPSS = np.arange((119-63), (119+64))    # np.arange(56, 183) # check on 3GPP standard 
-  corr_ind = np.zeros(3)    # array
-  corr_val = np.zeros(3, 'int')
+  corr_ind = np.zeros(3, 'int')    # array
+  corr_val = np.zeros(3)
   t = np.arange(len(rxWaveformDS))/sampleRate
 
   for NID2 in np.arange(3, dtype='int'):
     temp = scipy.signal.correlate(rxWaveformDS, refWaveforms[f'NID2_{NID2}'],'valid')
     corr_ind[NID2] = np.argmax(np.abs(temp))
-    corr_val[NID2] = np.abs(temp[corr_ind[NID2]])   
-    print(f"NID2 {NID2}:", corr_ind[NID2], corr_val[NID2])    
+    corr_val[NID2] = np.abs(temp[corr_ind[NID2]])  
   return corr_ind, corr_val
 
 def peak_one_fshift(corr_ind, corr_val):
   # one rxWaveformDS of a fshift with 3 refWaveforms 
   # input is 3 NID2 with 3 corr_ind and 3 corr_val 
+  print("corr_ind ", corr_ind)
+  print("corr_val ", corr_val)
   fshift_NID2 = np.argmax(corr_val)
-  fshift_corr_val = fshift_corr_val[fshift_NID2]
-  fshift_corr_ind = fshift_corr_ind[fshift_NID2]
+  fshift_corr_val = corr_val[fshift_NID2]
+  fshift_corr_ind = corr_ind[fshift_NID2]
+  print("fshift_corr: ", {fshift_NID2}, {fshift_corr_val}, {fshift_corr_ind})    
   return fshift_NID2, fshift_corr_ind, fshift_corr_val
 
 if __name__ == "__main__":
