@@ -37,15 +37,14 @@ def waveformDS(sampleRate, waveform):
   return rxWaveformDS
 
 def load_PSS_seq(base_path_PSS):
-  #'''load all PSS_seq'''
+  #'''load all PSS_seq to use as refWaveform'''
   NID2_val = [0,1,2]
 
   # Dictionary to store file path and refWaveform
   PSS_files = {}
   refWaveforms = {}
 
-  # Generate file path and initialize refWaveform arrays
-  # add lists in the dictionary
+  # Generate file path and initialize refWaveform arrays - add lists in the dictionary
   for NID2 in NID2_val:
       PSS_files[f'NID2_{NID2}'] = f'{base_path_PSS}/NID2_{NID2}.csv'
       refWaveforms[f'NID2_{NID2}'] = []
@@ -84,83 +83,51 @@ def peak_one_fshift(corr_ind, corr_val):
   return fshift_NID2, fshift_corr_ind, fshift_corr_val
 
 def get_all_fshift_corr():
-  # '''currently get user_input through terminal, will need to change to subscribe topic and get message'''
+  # '''currently get user_input through terminal, will need to change to subscribe mqtt topic and get message'''
   fshift_corr = {}
-  print("Entries data of 3 fshifts:")
-  print("Enter data in the format: fshift NID2 corr_ind corr_val")
-  print("Example: 45000 1 212347 2.345")
+  print("---get_all_fshift_corr---Entries data of fshifts (Example: 45000 1 212347 2.345):")
 
   while len(fshift_corr) < set_count_fshift:
-    # user_input = 45000 1 212347 2.345
-    # parts = ['45000', '1', '212347', '2.345']
-    user_input = input("Enter fshift data: ").strip()   # remove unnecessary space and \n 
-    # print("user_input: ", user_input)
+    user_input = input("Enter fshift data: ").strip()   # remove unnecessary space and \n     # user_input = 45000 1 212347 2.345    
+    parts = user_input.split()    # parts = ['45000', '1', '212347', '2.345']
 
-    parts = user_input.split()
-    # print("parts: ", parts)
-
-    fshift_data     = int(parts[0])     # 45000 (int)
-    fshift_NID2     = int(parts[1])     # 1 (int)
-    fshift_corr_ind = int(parts[2])     # 212347 (int)
-    fshift_corr_val = float(parts[3])   # 2.345 (float)
-
-    # print("fshift %d, fshift_NID2 %d, fshift_corr_ind %d, fshift_corr_val %f" %(fshift_data, fshift_NID2, fshift_corr_ind, fshift_corr_val))
+    fshift_val      = int(parts[0])     # 45000 
+    fshift_NID2     = int(parts[1])     # 1 
+    fshift_corr_ind = int(parts[2])     # 212347 
+    fshift_corr_val = float(parts[3])   # 2.345 
 
     # store correlated values in dictionary
-    fshift_corr[f'fshift_{fshift_data}'] = {
-       "fshift_data": fshift_data,
+    fshift_corr[f'fshift_{fshift_val}'] = {
+       "fshift_data": fshift_val,
        "fshift_NID2": fshift_NID2,
        "fshift_corr_ind": fshift_corr_ind,
        "fshift_corr_val": fshift_corr_val
-    }
-    
-  print(fshift_corr)
-  print("len(fshift_corr): ", len(fshift_corr))
+    }    
+  print("---get_all_fshift_corr---fshift_corr: ", fshift_corr)
 
   if len(fshift_corr) == set_count_fshift:
-     sel_fshift(fshift_corr)
+     max_fshift_corr(fshift_corr)
 
   return fshift_corr
 
-def sel_fshift(fshift_corr):
+def max_fshift_corr(fshift_corr):
   # ''' select fshift that provide the highest corr_val '''
-  fshift_corr_vals = list(x["fshift_corr_val"] for x in fshift_corr.values())
-  # print("fshift_corr_vals", fshift_corr_vals) 
-
-  ind_max_corr = np.argmax(fshift_corr_vals)
-  # print("ind_max_corr", ind_max_corr)
-
-  # keys: fshift_30000, fshift_0, fshift_45000
-  max_fshift_key = list(fshift_corr.keys())[ind_max_corr]
-  print("max_fshift_key", max_fshift_key)
-
-  print(fshift_corr[max_fshift_key])
-
-  return fshift_corr[max_fshift_key]
-   
-
-
+  # use list comprehension to get list of corr_val
+  list_corrVal = [x['fshift_corr_val'] for x in fshift_corr.values()]
+  max_ind = np.argmax(list_corrVal)  # find index of list_corrVal with max corr\
+  # return fshift of fshift_corr.keys at the max_ind
+  sel_fshift = list(fshift_corr.keys())[max_ind]    # fshift_corr.keys() = ['fshift_30000', 'fshift_45000'], sel_fshift = 'fshift_45000'
+  # return NID2, corr_ind, corr_val at that fshift
+  sel_NID2     = fshift_corr[sel_fshift]['fshift_NID2']
+  sel_corr_ind = fshift_corr[sel_fshift]['fshift_corr_ind']
+  sel_corr_val = fshift_corr[sel_fshift]['fshift_corr_val']
+  print(f"---max_fshift_corr---sel_fshift {sel_fshift}, sel_NID2 {sel_NID2}, sel_corr_ind {sel_corr_ind}, sel_corr_val {sel_corr_val}")
+  return sel_fshift, sel_NID2, sel_corr_ind, sel_corr_val
 
 if __name__ == "__main__":
-  # init parameter
-  # sampleRate = 15.36e6
-  # nrbSSB = 20
-  # mu = 1
-  # scs = 15 * 2**mu
-  # syncNfft = 256                  # minimum FFT Size to cover SS burst
-  # syncSR = syncNfft * scs * 1e3
-  # carrier = nrCarrierConfig(NSizeGrid = nrbSSB, SubcarrierSpacing = scs)
-  # fshift = 0
-
-  # base_path_PSS = "./PSS_Seq"
-  # input_file = "./waveform_IQComplex_fllay.csv"
-  # waveform = load_rx_srsRAN(input_file)
-  # refWaveforms = load_PSS_seq(base_path_PSS)
-  # print("calculate")
-
-  # rxWaveformFreqCorrected = waveform_fshift(fshift, sampleRate, waveform)
-  # rxWaveformDS = waveformDS(sampleRate, rxWaveformFreqCorrected)
-  # temp_corr_ind, temp_corr_val = correlate(carrier, fshift, sampleRate, rxWaveformDS, refWaveforms)
-  # fshift_NID2, fshift_corr_ind, fshift_corr_val = peak_one_fshift(temp_corr_ind, temp_corr_val)
-  
   get_all_fshift_corr()
+  # example input
+  # 30000 2 238938 0.577
+  # 45000 1 212347 2.345
+  # 0     2 63528  0.567
+  
