@@ -9,7 +9,7 @@ from py3gpp import *
 client = mqtt.Client()
 
 # init global parameter
-set_count_fshift = 7
+set_count_fshift = 4
 fshift_corr = {}
 
 ############################################################
