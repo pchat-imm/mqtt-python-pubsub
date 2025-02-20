@@ -1,12 +1,14 @@
-## current task
-1. use 1 sdr to transmit and see result of its csv, if it can plot with matlab
-2. use 1 sdr to trasnmit and 1 sdr to receive in real-time
-3. use this code
+# mqtt-python-pubsub
+**Purpose**: correlate received waveform with PSS sequence fast, using MQTT
 
+**Procedure**: 
+- correlate waveformDS with 3 refWaveforms, where `waveformDS = received signal w/ frequency shift and downsample`, `refWaveform = PSS seq where NID2 = [0,1,2]` 
+- Each node with its fshift, subscribe to the same topic, publish their correlation results.
+- Then end_node that subscribe to all can determine the maximum correlation, return `sel_fshift, sel_NID2, sel_corr_ind, sel_corr_val`
 
-## to operate system
+## To operate system
 - open vscode with Ubuntu WSL (select symbol >< at bottom left)
-- open terminal
+- open terminal (number of terminal = number of fshift)
 - mnt folder
 ```
 cd /mnt/d/workarea/together_python                                                                                                                                                                            
@@ -15,23 +17,21 @@ cd /mnt/d/workarea/together_python
 ```
 pip install -r requirement.txt
 ```
-
-- run code using `env` to add fshift_input
-(open terminal with how many works expected) \
+- set number of desired fshift `set_count_fshift = 4` in `waveform_fshift_ds.py`
+- open number of terminal = set_count_fshift. each terminal run code with `env` with different fshift_input. With the end_node to subscribe all topics and find maximum fshift.
 ```
-fshift=0 env python3 waveform_fshift_ds.py 
+fshift=0 env python3 waveform_fshift_ds.py
+fshift=15000 env python3 waveform_fshift_ds.py 
 fshift=30000 env python3 waveform_fshift_ds.py 
 fshift=45000 env python3 waveform_fshift_ds.py 
 fshift=end env python3 waveform_fshift_ds.py 
 ```
-the `end` declare the end of works, its work is to summarize 
+- open `mqtt explorer` to start the topic `waveform_fshift_ds/start`
+all nodes (except end_node) will start correlation
 
-- open `mqtt explorer` to run the topic `waveform_fshift_ds/start`
-all works (except work_end) will do calculation
+### note: `pm2` is not worked because of limited rersource of the notebook in the windows os
 
-### note: `pm2` is not worked because of limited rersource of the notebook in windows os
-
-# current result
+# Result
 - use mqtt (subscribe/publish topic)
 - open terminal according to number of desired fshift, for example
 ```
@@ -43,7 +43,7 @@ fshift=15000 env python3 waveform_fshift_ds.py
 fshift=30000 env python3 waveform_fshift_ds.py
 fshift=45000 env python3 waveform_fshift_ds.py 
 ```
-- have one node to listen all and determine max_fshift_corr
+- start end_node
 ```
 fshift=end env python3 waveform_fshift_ds.py
 ```
