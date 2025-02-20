@@ -1,5 +1,5 @@
 # mqtt-python-pubsub
-**Purpose**: correlate received waveform with PSS sequence fast, using MQTT
+**Purpose**: correlate received waveform with PSS sequence fast, using MQTT in file `waveform_fshift_ds.py`
 
 **Procedure**: 
 - correlate waveformDS with 3 refWaveforms, where `waveformDS = received signal w/ frequency shift and downsample`, `refWaveform = PSS seq where NID2 = [0,1,2]` 
